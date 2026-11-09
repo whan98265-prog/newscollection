@@ -1,0 +1,16 @@
+# Linux / macOS 定时（比 Windows 任务计划更简单）
+# 编辑：crontab -e
+#
+# 前提：已 cd 到项目目录并装好依赖（python3 -m pip install -r requirements.txt），
+#       config.yaml 已配置好。日志追加到 logs/cron.log。
+#
+# 格式：分 时 日 月 周  命令        （时间为本机时区，注意服务器常用 UTC）
+
+# 每天 09:00 和 17:00
+0 9,17 * * * cd /opt/finnews-bot && /usr/bin/python3 finnews.py >> logs/cron.log 2>&1
+
+# 只工作日推
+# 0 9,17 * * 1-5 cd /opt/finnews-bot && /usr/bin/python3 finnews.py >> logs/cron.log 2>&1
+
+# 想用虚拟环境时换成项目里的解释器：
+# 0 9,17 * * * cd /opt/finnews-bot && ./.venv/bin/python finnews.py >> logs/cron.log 2>&1

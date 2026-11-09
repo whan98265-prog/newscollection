@@ -1,0 +1,48 @@
+name: daily-digest
+
+# 可选：不用自己的电脑，也能每天 09:00 / 17:00（北京时间）跑一次。
+# 用法：仓库 Settings → Secrets and variables → Actions 里加
+#   SERVER_CHAN_KEYS   Server 酱 SendKey，多个用逗号分隔（可选）
+#   NEWS_WEBHOOK_URL   群机器人 webhook（可选）
+# 产物在 Actions 页面的 Artifacts 里下载。
+
+on:
+  schedule:
+    # UTC 01:00 = 北京 09:00；UTC 09:00 = 北京 17:00
+    - cron: "0 1,9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Collect news
+        env:
+          SERVER_CHAN_KEYS: ${{ secrets.SERVER_CHAN_KEYS }}
+          NEWS_WEBHOOK_URL: ${{ secrets.NEWS_WEBHOOK_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python finnews.py --config config.example.yaml
+
+      - name: Upload digest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ github.run_number }}
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,9 @@
+# 依赖：Python 3.10+
+# 核心（不装 openai 也能跑，只是没有 AI 摘要）
+feedparser>=6.0.10
+requests>=2.31.0
+PyYAML>=6.0.1
+pytz>=2023.3
+
+# 可选：要 AI 摘要再装
+# openai>=1.30.0

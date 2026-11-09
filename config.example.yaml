@@ -1,0 +1,67 @@
+# finnews-bot 配置示例
+# 复制为 config.yaml 后修改；config.yaml 不会被提交（见 .gitignore）。
+# 多数字段留空也能跑：默认只落盘、不推送。
+
+timezone: Asia/Shanghai
+max_items: 6          # 每个源最多取几条
+keep_days: 7          # 去重记忆保留天数（同一链接 7 天内不重复）
+article_text: false   # 是否抓正文（路透代理链接正文页会 403，建议 false）
+
+output:
+  # 按 年/月/日 落盘：<root>/2026/11/09/news-20261109-090000.md
+  # 留空 = 写到项目下的 reports/；Windows 想放 E 盘可填 "E:/FinNews"
+  root: ""
+  keep_local_copy: false    # 是否额外在 reports/ 留一份
+
+translate:
+  enabled: true             # 标题/摘要自动翻成中文（Google 免费接口 + 本地缓存）
+  target: zh-CN
+
+ai:
+  enabled: auto       # auto=有 key 就写摘要；true/false 强制开关
+  model: deepseek-chat
+  base_url: https://api.deepseek.com/v1
+  max_chars: 20000    # 送进模型的新闻文本上限
+  # api_key: sk-xxx  # 建议用环境变量 OPENAI_API_KEY，别写进文件
+
+push:
+  # Server 酱 SendKey（可多个）：["SCTxxxx", "SCTyyyy"]
+  # 也支持环境变量 SERVER_CHAN_KEYS（逗号分隔），环境变量优先
+  serverchan_keys: []
+  # 群机器人（可与 Server 酱同时用）：飞书/钉钉自定义机器人
+  webhook_url: ""
+  webhook_kind: feishu   # feishu | dingtalk | generic
+
+sources:
+  # ---- 路透社 ----
+  # 路透 2020 年起关闭了公开 RSS，官网 /arc/outboundfeeds/rss 全部 404。
+  # 这里用 Google 新闻的 site: 检索作为代理源，点进去仍是 reuters.com 原文。
+  - category: 路透 · 市场
+    name: Reuters Markets
+    url: "https://news.google.com/rss/search?q=site%3Areuters.com+markets+when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+
+  - category: 路透 · 商业
+    name: Reuters Business
+    url: "https://news.google.com/rss/search?q=site%3Areuters.com+business+when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+
+  - category: 路透 · 科技
+    name: Reuters Tech
+    url: "https://news.google.com/rss/search?q=site%3Areuters.com+technology+when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+
+  # ---- 中文财经 ----
+  - category: 中文财经
+    name: 华尔街见闻
+    url: "https://dedicated.wallstreetcn.com/rss.xml"
+
+  - category: 中文财经
+    name: 东方财富
+    url: "http://rss.eastmoney.com/rss_partener.xml"
+
+  # ---- 全球宏观 ----
+  - category: 全球宏观
+    name: BBC Business
+    url: "http://feeds.bbci.co.uk/news/business/rss.xml"
+
+  - category: 全球宏观
+    name: WSJ Markets
+    url: "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"
