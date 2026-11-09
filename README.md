@@ -1,5 +1,6 @@
 # finnews-bot
 
+[![ci](https://github.com/whan98265-prog/newscollection/actions/workflows/ci.yml/badge.svg)](https://github.com/whan98265-prog/newscollection/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Dependencies](https://img.shields.io/badge/deps-4%20packages-informational)
