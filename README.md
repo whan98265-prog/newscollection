@@ -115,9 +115,21 @@ https://news.google.com/rss/search?q=site%3Areuters.com+markets+when%3A2d&hl=en-
 **Windows**（推荐，静默无窗口）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_task.ps1 -Times 09:00,17:00
+powershell -ExecutionPolicy Bypass -File .\scripts\install_task.ps1
 Get-ScheduledTask -TaskName "FinNews-*" | Format-Table TaskName,State
 ```
+
+默认会注册 4 个任务，覆盖两个推送时段 + 各自一次补跑：
+
+| 任务 | 时间 | 参数 | 作用 |
+| --- | --- | --- | --- |
+| `FinNews-0900` | 09:00 | `finnews.py --slot am` | 早报 |
+| `FinNews-1330` | 13:30 | `finnews.py --slot am` | 早报补跑（早上机器在睡眠时） |
+| `FinNews-1700` | 17:00 | `finnews.py --slot pm` | 晚报 |
+| `FinNews-2130` | 21:30 | `finnews.py --slot pm` | 晚报补跑 |
+
+几个可靠性设定：`WakeToRun` 让机器从睡眠中唤醒执行（`-NoWake` 可关）、`StartWhenAvailable` 错过就补跑、
+`--slot am|pm` 配合当天标记文件，使补跑在“该时段已推送”时直接空转，不会重复打扰。
 
 **Linux / macOS**：见 `scripts/crontab.example`。
 

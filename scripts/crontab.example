@@ -6,8 +6,11 @@
 #
 # 格式：分 时 日 月 周  命令        （时间为本机时区，注意服务器常用 UTC）
 
-# 每天 09:00 和 17:00
-0 9,17 * * * cd /opt/finnews-bot && /usr/bin/python3 finnews.py >> logs/cron.log 2>&1
+# 早报 09:00 + 晚报 17:00，各带一次补跑（--slot 让补跑在已推送时自动空转）
+0 9    * * * cd /opt/finnews-bot && /usr/bin/python3 finnews.py --slot am >> logs/cron.log 2>&1
+30 13  * * * cd /opt/finnews-bot && /usr/bin/python3 finnews.py --slot am >> logs/cron.log 2>&1
+0 17   * * * cd /opt/finnews-bot && /usr/bin/python3 finnews.py --slot pm >> logs/cron.log 2>&1
+30 21  * * * cd /opt/finnews-bot && /usr/bin/python3 finnews.py --slot pm >> logs/cron.log 2>&1
 
 # 只工作日推
 # 0 9,17 * * 1-5 cd /opt/finnews-bot && /usr/bin/python3 finnews.py >> logs/cron.log 2>&1

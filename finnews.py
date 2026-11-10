@@ -424,6 +424,11 @@ def load_config(path: Path | str = CONFIG) -> dict:
     return yaml.safe_load(p.read_text(encoding="utf-8")) or {}
 
 
+def slot_marker(folder: Path, slot: str) -> Path:
+    """同一时段（am/pm）当天只跑一次的标记文件。"""
+    return folder / f".slot-{slot}"
+
+
 def main() -> int:
     setup_logging()
 
@@ -432,10 +437,19 @@ def main() -> int:
     ap.add_argument("--no-ai", action="store_true", help="不调用大模型")
     ap.add_argument("--dry-run", action="store_true", help="只看结果，不落盘不推送")
     ap.add_argument("--all", action="store_true", help="忽略去重")
+    ap.add_argument("--slot", choices=["am", "pm"], default="",
+                    help="时段标记：同一时段当天只跑一次，计划任务补跑时用")
     ap.add_argument("--version", action="version", version=f"finnews-bot {__version__}")
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+    ts = now(cfg.get("timezone", "Asia/Shanghai"))
+    folder = out_dir(cfg, ts)
+
+    if args.slot and slot_marker(folder, args.slot).exists():
+        print(f"ℹ️  {ts:%Y-%m-%d} 的 {args.slot} 时段已推送过，跳过（补跑任务不必重复劳动）")
+        return 0
+
     by_category, flat, seen, stats = collect(cfg, ignore_seen=args.all)
 
     translate_items(flat, cfg)
@@ -453,11 +467,12 @@ def main() -> int:
         print("\n" + "=" * 60 + "\n" + md)
         return 0
 
-    ts = now(cfg.get("timezone", "Asia/Shanghai"))
     if not flat and not args.all:
         print("ℹ️  没有新条目，跳过落盘（要强制输出全量用 --all）")
+        if args.slot:
+            folder.mkdir(parents=True, exist_ok=True)
+            slot_marker(folder, args.slot).write_text(ts.isoformat(), encoding="utf-8")
         return 0
-    folder = out_dir(cfg, ts)
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"news-{ts:%Y%m%d-%H%M%S}.md"
     path.write_text(md, encoding="utf-8")
@@ -470,6 +485,8 @@ def main() -> int:
     save_seen(seen, int(cfg.get("keep_days", 7)))
     push_serverchan(cfg, f"📌 {ts:%Y-%m-%d} 财经速递 · {len(flat)} 条", md)
     push_webhook(cfg, f"📌 {ts:%Y-%m-%d} 财经速递 · {len(flat)} 条", md)
+    if args.slot:
+        slot_marker(folder, args.slot).write_text(ts.isoformat(), encoding="utf-8")
     return 0
 
 
